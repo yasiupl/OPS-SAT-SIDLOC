@@ -20,6 +20,12 @@ opssat_sidloc::opssat_sidloc()
 opssat_sidloc::~opssat_sidloc(){
 
 }
+/**
+ * @brief activate_stream: Used at the beginning of execfution to setup the descriptors
+ * and the device. Called once if no reset is done.
+ * 
+ * @return int 0 for success
+ */
 
 int opssat_sidloc::activate_stream(){
 
@@ -46,33 +52,43 @@ int opssat_sidloc::activate_stream(){
     return 0;
 }
 
-int opssat_sidloc::read_stream(uint8_t* buffer, size_t len){
+/**
+ * @brief read_stream: Reads the specified number of bytes from the FPGA. Data is returned as
+ * 32-bit integers where 16 LSB is the real and 16 MSB is the imaginary part of the complex number.
+ * 
+ * @param buffer The buffer where the 32bit values will be stored
+ * @param len The amount of bytes to transfer
+ * @return int 0 if success, < 0 for error
+ */
+
+int opssat_sidloc::read_stream(uint32_t* buffer, size_t len){
     if(len % LEN_PER_DESCRIPTOR != 0)
         return -1;
     size_t num_desc = len / LEN_PER_DESCRIPTOR;
     size_t timeout = 0;
     for(int i = 0; i < num_desc ; i++){
-            while(timeout < TIMEOUT){
-                if(!(__desc_chains[0][__current_desc].read_status(__ddr_uio) & OWNED_BY_HW) || __dma_dev.get_error())
-                    break;
-                std::this_thread::sleep_for(std::chrono::milliseconds(50));
-                timeout++;
-            }
-            if(timeout >= 10){
-                std::cout << "Timeout " << __current_desc << std::endl;
-                return -1;
-            }
-            if(__dma_dev.get_error()){
-                return -2;
-            }
-            else{
-                memcpy(&buffer[i * (LEN_PER_DESCRIPTOR)], 
-                    &__samples_ptr[INITIAL_STORAGE_OFFSET_WORDS + __desc_chains[0][__current_desc].get_write_offset()], LEN_PER_DESCRIPTOR);
-                    __desc_chains[0][__current_desc].descriptor_reset(__ddr_uio);
-            }
-            timeout = 0;
-            __current_desc = (__current_desc + 1 >= DESC_PER_CHAIN) ? 0 : __current_desc + 1;
+        while(timeout < TIMEOUT){
+            if(!(__desc_chains[0][__current_desc].read_status(__ddr_uio) & OWNED_BY_HW) || __dma_dev.get_error())
+                break;
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            timeout++;
         }
+        if(timeout >= 10){
+            std::cout << "Timeout " << __current_desc << std::endl;
+            return -1;
+        }
+        if(__dma_dev.get_error()){
+            return -2;
+        }
+        else{
+            memcpy(&buffer[i * (LEN_PER_DESCRIPTOR)], 
+                &__samples_ptr[INITIAL_STORAGE_OFFSET_WORDS + __desc_chains[0][__current_desc].get_write_offset()], LEN_PER_DESCRIPTOR);
+                __desc_chains[0][__current_desc].descriptor_reset(__ddr_uio);
+        }
+        timeout = 0;
+        __current_desc = (__current_desc + 1 >= DESC_PER_CHAIN) ? 0 : __current_desc + 1;
+    }
+    return 0;
 }
 
 void opssat_sidloc::reset_device(){

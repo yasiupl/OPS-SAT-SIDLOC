@@ -1,7 +1,6 @@
 #include "descriptor.hpp"
 #include <stdint.h>
 #include "util.hpp"
-#include "uio_generic.h"
 
 descriptor::descriptor(size_t off_from_base, uint32_t source, uint32_t destination,
     uint32_t next_desc_ptr, uint32_t bytes_to_transfer, uint32_t write_offset) {

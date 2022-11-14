@@ -30,6 +30,6 @@ public:
     opssat_sidloc();
     ~opssat_sidloc();
     int activate_stream();
-    int read_stream(uint8_t* buffer, size_t len);
+    int read_stream(uint32_t* buffer, size_t len);
     void reset_device();
 };
