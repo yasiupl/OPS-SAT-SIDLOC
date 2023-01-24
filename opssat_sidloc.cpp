@@ -13,6 +13,7 @@ opssat_sidloc::opssat_sidloc()
     __dma_uio.open_dev(0x00001000);
     __dma_dev.set_uio_device(__dma_uio);
     __samples_ptr = __ddr_uio.get_ptr(0);
+    __fifo_arbiter = __dma_uio.get_ptr(256);
     __desc_chains = std::vector<std::vector<descriptor>>(NUM_CHAINS);
     __current_desc = 0;
 };
@@ -63,17 +64,18 @@ int opssat_sidloc::activate_stream(){
 
 int opssat_sidloc::read_stream(uint32_t* buffer, size_t len){
     if(len % LEN_PER_DESCRIPTOR != 0)
-        return -1;
+        return -3;
     size_t num_desc = len / LEN_PER_DESCRIPTOR;
     size_t timeout = 0;
+    *(__fifo_arbiter) = 1;
     for(int i = 0; i < num_desc ; i++){
         while(timeout < TIMEOUT){
             if(!(__desc_chains[0][__current_desc].read_status(__ddr_uio) & OWNED_BY_HW) || __dma_dev.get_error())
                 break;
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            std::this_thread::sleep_for(std::chrono::microseconds(640));
             timeout++;
         }
-        if(timeout >= 10){
+        if(timeout >= TIMEOUT){
             std::cout << "Timeout " << __current_desc << std::endl;
             return -1;
         }
@@ -81,9 +83,9 @@ int opssat_sidloc::read_stream(uint32_t* buffer, size_t len){
             return -2;
         }
         else{
-            memcpy(&buffer[i * (LEN_PER_DESCRIPTOR)], 
+            memcpy(&buffer[i * (LEN_PER_DESCRIPTOR/4)], 
                 &__samples_ptr[INITIAL_STORAGE_OFFSET_WORDS + __desc_chains[0][__current_desc].get_write_offset()], LEN_PER_DESCRIPTOR);
-                __desc_chains[0][__current_desc].descriptor_reset(__ddr_uio);
+             __desc_chains[0][__current_desc].descriptor_reset(__ddr_uio);
         }
         timeout = 0;
         __current_desc = (__current_desc + 1 >= DESC_PER_CHAIN) ? 0 : __current_desc + 1;

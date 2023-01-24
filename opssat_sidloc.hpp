@@ -6,7 +6,7 @@
 #include <vector>
 
 #define NUM_CHAINS                  1
-#define DESC_PER_CHAIN              100
+#define DESC_PER_CHAIN              10
 #define LEN_PER_DESCRIPTOR          (1024 * 10)
 #define INITIAL_DESC_BASE_OFFSET    0x0C000000
 #define DESC_WORD_SIZE              8
@@ -25,6 +25,7 @@ private:
                 __desc_chains;
     uint32_t*   __samples_ptr;
     size_t      __current_desc;
+    uint32_t*   __fifo_arbiter;
 
 public:
     opssat_sidloc();
