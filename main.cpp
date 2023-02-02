@@ -45,29 +45,31 @@ we generate a counter which counts up at every clock cycle and receive the count
 int main(int argc,char* argv[]){
     /* Create the device handle */
     opssat_sidloc opssat_dev = opssat_sidloc();
-    int actual_reps;
-    int reps = (argc >= 2) ? std::atoi(argv[1]) : REPS;
-    actual_reps = reps;
 
     /* Buffer to store received samples */
-    uint32_t buffer32[ reps * DESC_PER_CHAIN * (LEN_PER_DESCRIPTOR/4)];
+    uint32_t buffer32[ REPS * DESC_PER_CHAIN * (LEN_PER_DESCRIPTOR/4)];
     int ret;
     /* Activate the stream */
     opssat_dev.activate_stream();
-    
+        
     /* Read REPS times from the FPGA */
-    for(int i = 0; i < reps; i++){    
-       ret = opssat_dev.read_stream(&buffer32[i * DESC_PER_CHAIN * LEN_PER_DESCRIPTOR/4], DESC_PER_CHAIN * LEN_PER_DESCRIPTOR);
-        if(ret == -1)
+    for(int i = 0; i < REPS; i++){    
+    ret = opssat_dev.read_stream(&buffer32[i * DESC_PER_CHAIN * LEN_PER_DESCRIPTOR/4], DESC_PER_CHAIN * LEN_PER_DESCRIPTOR);
+        if(ret == -1){
             std::cout << "Timeout" << std::endl;
-        else if(ret == -2)
+            throw std::runtime_error("Timeout");
+        }
+        else if(ret == -2) {
             std::cout << "Error" << std::endl;
+            throw std::runtime_error("Error");
+        }
     }
     std::ofstream out_file;
     out_file.open ("output_samples.bin", std::ios::out  | std::ios::binary);
-    out_file.write((char*)buffer32,reps * DESC_PER_CHAIN * LEN_PER_DESCRIPTOR);
+    out_file.write((char*)buffer32,REPS * DESC_PER_CHAIN * LEN_PER_DESCRIPTOR);
     out_file.close();
 
     /* Reset device */
     opssat_dev.reset_device();
+
 }

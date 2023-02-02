@@ -25,6 +25,7 @@
 #include <cstring>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <errno.h>
 
 uio_device::uio_device(){ 
 }
@@ -36,7 +37,6 @@ void uio_device::set_dev_name(std::string dev_name){
 
 int uio_device::open_dev(size_t length){
   int uiofd = open(d_dev_name.c_str(), O_RDWR);
-  //size_t length = 0x00001000;
   d_length = length;
   off_t offset = 0x0;
   if (uiofd < 0) {
@@ -45,9 +45,9 @@ int uio_device::open_dev(size_t length){
 
   d_mem = (uint32_t*)mmap(NULL, length, PROT_READ|PROT_WRITE, MAP_SHARED, uiofd, offset);
   if (d_mem == MAP_FAILED) { 
+        std::cout << d_dev_name.c_str() <<  " Error is " <<  errno << std::endl;
       return -1;
   }
-
   return 0;
 }
 

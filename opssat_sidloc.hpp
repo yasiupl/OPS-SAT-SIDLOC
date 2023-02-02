@@ -40,14 +40,16 @@ private:
     uio_device  __ddr_uio;
     uio_device  __dma_uio;
     dma_device  __dma_dev;
+    uio_device  __fifo_arbiter;
     std::vector<std::vector<descriptor>> 
                 __desc_chains;
     uint32_t*   __samples_ptr;
     size_t      __current_desc;
-    uint32_t*   __fifo_arbiter;
 
 public:
-    opssat_sidloc();
+    opssat_sidloc(const char *ddr_uio_name, 
+                            const char* dma_uio_name,
+                            const char* fifo_arbiter_uio_name);
     ~opssat_sidloc();
     int activate_stream();
     int read_stream(uint32_t* buffer, size_t len);
