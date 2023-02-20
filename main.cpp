@@ -37,23 +37,37 @@
 #include <iostream>
 #include <fstream>
 
-#define REPS         3
+#define REPS         10
 
 /* This chunk of code tests the opssat_sidloc API. Using the test core in the FPGA
 we generate a counter which counts up at every clock cycle and receive the counter values in the CPU.  */
 
 int main(int argc,char* argv[]){
     /* Create the device handle */
-    opssat_sidloc opssat_dev = opssat_sidloc();
-
-    /* Buffer to store received samples */
-    uint32_t buffer32[ REPS * DESC_PER_CHAIN * (LEN_PER_DESCRIPTOR/4)];
+    bool bypass;
+    int actual_reps;
+    std::string filename;
+    std::ofstream out_file;
     int ret;
+    actual_reps = REPS;
+
+    std::cout << "EXP202 Test starting" << std::endl;
+    
+    /* Buffer to store received samples */
+    uint32_t buffer32[ actual_reps * DESC_PER_CHAIN * (LEN_PER_DESCRIPTOR/4)];
+
+    if(argc >= 2)
+        filename = argv[1];
+    else
+        throw std::runtime_error("No filename given");
+    
+    opssat_sidloc opssat_dev = opssat_sidloc();
+    
     /* Activate the stream */
     opssat_dev.activate_stream();
         
     /* Read REPS times from the FPGA */
-    for(int i = 0; i < REPS; i++){    
+    for(int i = 0; i < actual_reps; i++){    
     ret = opssat_dev.read_stream(&buffer32[i * DESC_PER_CHAIN * LEN_PER_DESCRIPTOR/4], DESC_PER_CHAIN * LEN_PER_DESCRIPTOR);
         if(ret == -1){
             std::cout << "Timeout" << std::endl;
@@ -64,10 +78,12 @@ int main(int argc,char* argv[]){
             throw std::runtime_error("Error");
         }
     }
-    std::ofstream out_file;
-    out_file.open ("output_samples.bin", std::ios::out  | std::ios::binary);
-    out_file.write((char*)buffer32,REPS * DESC_PER_CHAIN * LEN_PER_DESCRIPTOR);
+    
+    out_file.open (filename, std::ios::out  | std::ios::binary);
+    out_file.write((char*)buffer32,actual_reps * DESC_PER_CHAIN * LEN_PER_DESCRIPTOR);
     out_file.close();
+
+    std::cout << "EXP202 Test exited and produced file" << std::endl;
 
     /* Reset device */
     opssat_dev.reset_device();

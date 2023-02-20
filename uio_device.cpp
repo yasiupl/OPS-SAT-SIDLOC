@@ -37,6 +37,7 @@ void uio_device::set_dev_name(std::string dev_name){
 
 int uio_device::open_dev(size_t length){
   int uiofd = open(d_dev_name.c_str(), O_RDWR);
+  //size_t length = 0x00001000;
   d_length = length;
   off_t offset = 0x0;
   if (uiofd < 0) {
