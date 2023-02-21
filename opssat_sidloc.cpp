@@ -102,6 +102,7 @@ int opssat_sidloc::read_stream(uint32_t* buffer, size_t len){
         return -3;
     size_t num_desc = len / LEN_PER_DESCRIPTOR;
     size_t timeout = 0;
+    std::cout << "Reading chain " << __current_desc << std::endl;
     while(timeout < TIMEOUT){
             if(!(__desc_chains[__current_desc][DESC_PER_CHAIN - 1].read_status(__ddr_uio) & OWNED_BY_HW) || __dma_dev.get_error()){
                 break;
