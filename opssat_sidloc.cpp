@@ -28,8 +28,8 @@ opssat_sidloc::opssat_sidloc()
 {
     int ret;
     __ddr_uio.set_dev_name("/dev/uio0");
-    __dma_uio.set_dev_name("/dev/uio2");
-    __fifo_arbiter.set_dev_name("/dev/uio1");
+    __dma_uio.set_dev_name("/dev/uio1");
+    __fifo_arbiter.set_dev_name("/dev/uio2");
     ret = __ddr_uio.open_dev(0x00110000);
     if(ret < 0)
     {
