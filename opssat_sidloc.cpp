@@ -24,12 +24,13 @@
 #include <string.h>
 #include <iostream>
 
+
 opssat_sidloc::opssat_sidloc()
 {
     int ret;
     __ddr_uio.set_dev_name("/dev/uio0");
     __dma_uio.set_dev_name("/dev/uio1");
-    __fifo_arbiter.set_dev_name("/dev/uio2");
+    //__fifo_arbiter.set_dev_name("/dev/uio2");
     ret = __ddr_uio.open_dev(0x00110000);
     if(ret < 0)
     {
@@ -41,11 +42,11 @@ opssat_sidloc::opssat_sidloc()
         std::cout << "DMA map failed" << std::endl;
     } 
     __dma_dev.set_uio_device(__dma_uio);
-    ret = __fifo_arbiter.open_dev(0x00001000);
-    if(ret < 0)
-    {
-        std::cout << "FIFO arbiter map failed" << std::endl;
-    } 
+    // ret = __fifo_arbiter.open_dev(0x00001000);
+    // if(ret < 0)
+    // {
+    //     std::cout << "FIFO arbiter map failed" << std::endl;
+    // } 
     __samples_ptr = __ddr_uio.get_ptr(0);
     //__fifo_arbiter = __dma_uio.get_ptr(256);
     __desc_chains = std::vector<std::vector<descriptor>>(NUM_CHAINS);
@@ -84,7 +85,7 @@ int opssat_sidloc::activate_stream(){
     __dma_dev.reset_dma();
     __dma_dev.set_nex_dext_ptr(INITIAL_DESC_BASE_OFFSET);
     __dma_dev.set_dma_ctrl(IE_GLOBAL | RUN | STOP_DMA_ER | DESC_POLL_EN | (1 << 20));
-    __fifo_arbiter.uio_write(0, 1);
+    //__fifo_arbiter.uio_write(0, 1);
     return 0;
 }
 
