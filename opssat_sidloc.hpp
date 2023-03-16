@@ -27,7 +27,7 @@
 #define NUM_CHAINS                  2
 #define DESC_PER_CHAIN              10
 #define LEN_PER_DESCRIPTOR          (1024 * 10)
-#define INITIAL_DESC_BASE_OFFSET    0x0C000000
+#define INITIAL_DESC_BASE_OFFSET    0x1C000000
 #define DESC_WORD_SIZE              8
 #define TIMEOUT                     10
 #define INITIAL_STORAGE_OFFSET      (INITIAL_DESC_BASE_OFFSET + \
