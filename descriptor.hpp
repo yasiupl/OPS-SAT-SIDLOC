@@ -43,5 +43,6 @@ public:
     uint8_t read_status(uio_device uio_dev);
     bool descriptor_finished();
     uint32_t get_write_offset();
+    uint32_t get_mem_offset();
 };
 

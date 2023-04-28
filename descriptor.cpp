@@ -59,3 +59,6 @@ uint32_t descriptor::get_write_offset(){
     return d_write_offset;
 }
 
+uint32_t descriptor::get_mem_offset(){
+    return d_destination;
+}

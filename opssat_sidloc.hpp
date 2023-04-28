@@ -24,7 +24,7 @@
 #include "util.hpp"
 #include <vector>
 
-#define NUM_CHAINS                  2
+#define NUM_CHAINS                  3
 #define DESC_PER_CHAIN              10
 #define LEN_PER_DESCRIPTOR          (1024 * 10)
 #define INITIAL_DESC_BASE_OFFSET    0x1C000000
@@ -48,7 +48,8 @@ private:
     //uint32_t*   __fifo_arbiter;
 
 public:
-    opssat_sidloc();
+    opssat_sidloc(const char *ddr_uio_name, 
+                            const char* dma_uio_name);
     ~opssat_sidloc();
     int activate_stream();
     int read_stream(uint32_t* buffer, size_t len);

@@ -25,12 +25,12 @@
 #include <iostream>
 
 
-opssat_sidloc::opssat_sidloc()
+opssat_sidloc::opssat_sidloc(const char *ddr_uio_name, 
+                            const char* dma_uio_name)
 {
     int ret;
-    __ddr_uio.set_dev_name("/dev/uio0");
-    __dma_uio.set_dev_name("/dev/uio1");
-    //__fifo_arbiter.set_dev_name("/dev/uio2");
+    __ddr_uio.set_dev_name(ddr_uio_name);
+    __dma_uio.set_dev_name(dma_uio_name);
     ret = __ddr_uio.open_dev(0x00110000);
     if(ret < 0)
     {
@@ -42,15 +42,10 @@ opssat_sidloc::opssat_sidloc()
         std::cout << "DMA map failed" << std::endl;
     } 
     __dma_dev.set_uio_device(__dma_uio);
-    // ret = __fifo_arbiter.open_dev(0x00001000);
-    // if(ret < 0)
-    // {
-    //     std::cout << "FIFO arbiter map failed" << std::endl;
-    // } 
+
     __samples_ptr = __ddr_uio.get_ptr(0);
-    //__fifo_arbiter = __dma_uio.get_ptr(256);
     __desc_chains = std::vector<std::vector<descriptor>>(NUM_CHAINS);
-    __current_desc = 0;
+    
 };
 
 opssat_sidloc::~opssat_sidloc(){
@@ -66,6 +61,7 @@ opssat_sidloc::~opssat_sidloc(){
 int opssat_sidloc::activate_stream(){
 
     uint32_t next_desc_ptr;
+    __current_desc = 0;
 
     for(int k = 0; k < NUM_CHAINS; k++){
         for(int i = 0; i < DESC_PER_CHAIN; i++){
@@ -85,7 +81,6 @@ int opssat_sidloc::activate_stream(){
     __dma_dev.reset_dma();
     __dma_dev.set_nex_dext_ptr(INITIAL_DESC_BASE_OFFSET);
     __dma_dev.set_dma_ctrl(IE_GLOBAL | RUN | STOP_DMA_ER | DESC_POLL_EN | (1 << 20));
-    //__fifo_arbiter.uio_write(0, 1);
     return 0;
 }
 
@@ -103,12 +98,11 @@ int opssat_sidloc::read_stream(uint32_t* buffer, size_t len){
         return -3;
     size_t num_desc = len / LEN_PER_DESCRIPTOR;
     size_t timeout = 0;
-    std::cout << "Reading chain " << __current_desc << std::endl;
-    while(timeout < TIMEOUT){
+     while(timeout < TIMEOUT){
             if(!(__desc_chains[__current_desc][DESC_PER_CHAIN - 1].read_status(__ddr_uio) & OWNED_BY_HW) || __dma_dev.get_error()){
                 break;
-            }
-        std::this_thread::sleep_for(std::chrono::microseconds(8000));
+            }   
+        std::this_thread::sleep_for(std::chrono::microseconds(17000));
         timeout++;
     }
     if(timeout >= TIMEOUT){
@@ -134,6 +128,12 @@ int opssat_sidloc::read_stream(uint32_t* buffer, size_t len){
 }
 
 void opssat_sidloc::reset_device(){
+    for(int k = 0; k < NUM_CHAINS; k++){
+        __desc_chains[k].clear();
+    }
+    memset(&__samples_ptr[0], 0, INITIAL_STORAGE_OFFSET_WORDS * 4);
+    
     __dma_dev.set_dma_ctrl(__dma_dev.get_dma_ctrl() ^ RUN);
     __dma_dev.set_dma_status(__dma_dev.get_dma_status() ^ (STS_CHAIN_COMPLETED | STS_DESCRIPTOR_COMPLETED));
+    __dma_dev.reset_dma();
 }
