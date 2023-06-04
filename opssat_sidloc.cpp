@@ -31,6 +31,7 @@ opssat_sidloc::opssat_sidloc(const char *ddr_uio_name,
     int ret;
     __ddr_uio.set_dev_name(ddr_uio_name);
     __dma_uio.set_dev_name(dma_uio_name);
+    __sdr_uio.set_dev_name("/dev/uio2");
     ret = __ddr_uio.open_dev(0x00110000);
     if(ret < 0)
     {
@@ -42,7 +43,11 @@ opssat_sidloc::opssat_sidloc(const char *ddr_uio_name,
         std::cout << "DMA map failed" << std::endl;
     } 
     __dma_dev.set_uio_device(__dma_uio);
-
+    ret = __sdr_uio.open_dev(0x00001000);
+    if(ret < 0)
+    {
+        std::cout << "SDR map failed" << std::endl;
+    } 
     __samples_ptr = __ddr_uio.get_ptr(0);
     __desc_chains = std::vector<std::vector<descriptor>>(NUM_CHAINS);
     
@@ -59,6 +64,16 @@ opssat_sidloc::~opssat_sidloc(){
  */
 
 int opssat_sidloc::activate_stream(){
+    uint32_t temporary_control;
+    temporary_control= __sdr_uio.uio_read(0) & (1 ^ 0xFFFFFFFF);
+    __sdr_uio.uio_write(0, temporary_control);
+    temporary_control= __sdr_uio.uio_read(0);
+     __sdr_uio.uio_write(0, temporary_control | (1 << 1));
+    std::this_thread::sleep_for(std::chrono::microseconds(10000));
+    __sdr_uio.uio_write(0, temporary_control & ~( 1 << 1));
+    
+    temporary_control= __sdr_uio.uio_read(0) | 1;
+    __sdr_uio.uio_write(0, temporary_control);
 
     uint32_t next_desc_ptr;
     __current_desc = 0;
@@ -105,7 +120,7 @@ int opssat_sidloc::read_stream(uint32_t* buffer, size_t len){
         std::this_thread::sleep_for(std::chrono::microseconds(17000));
         timeout++;
     }
-    if(timeout >= TIMEOUT){
+    if(timeout >= TIMEOUT){   
         std::cout << "Timeout " << __current_desc << std::endl;
         return -1;
     }

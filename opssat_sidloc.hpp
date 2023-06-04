@@ -40,6 +40,7 @@ private:
     uio_device  __ddr_uio;
     uio_device  __dma_uio;
     dma_device  __dma_dev;
+    uio_device  __sdr_uio;
     uio_device  __fifo_arbiter;
     std::vector<std::vector<descriptor>> 
                 __desc_chains;
