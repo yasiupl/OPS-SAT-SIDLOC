@@ -102,7 +102,7 @@ int opssat_sidloc::read_stream(uint32_t* buffer, size_t len){
             if(!(__desc_chains[__current_desc][DESC_PER_CHAIN - 1].read_status(__ddr_uio) & OWNED_BY_HW) || __dma_dev.get_error()){
                 break;
             }   
-        std::this_thread::sleep_for(std::chrono::microseconds(17000));
+        std::this_thread::sleep_for(std::chrono::microseconds(170));
         timeout++;
     }
     if(timeout >= TIMEOUT){
