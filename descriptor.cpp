@@ -19,7 +19,7 @@
 
 #include "descriptor.hpp"
 #include "util.hpp"
-#include <stdint.h>
+#include <cstdint>
 #include <thread>
 
 descriptor::descriptor(size_t off_from_base, uint32_t source,

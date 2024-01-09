@@ -18,6 +18,8 @@
  */
 
 #pragma once
+#include <cstddef>
+#include <cstdint>
 #include <string>
 
 class uio_device
