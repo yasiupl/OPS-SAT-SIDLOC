@@ -18,40 +18,42 @@
  */
 
 #pragma once
-#include "uio_device.hpp"
 #include "descriptor.hpp"
 #include "dma_device.hpp"
+#include "uio_device.hpp"
 #include "util.hpp"
 #include <vector>
 
-#define NUM_CHAINS                  3
-#define DESC_PER_CHAIN              10
-#define LEN_PER_DESCRIPTOR          (1024 * 10)
-#define INITIAL_DESC_BASE_OFFSET    0x1C000000
-#define DESC_WORD_SIZE              8
-#define TIMEOUT                     10
-#define INITIAL_STORAGE_OFFSET      (INITIAL_DESC_BASE_OFFSET + \
-                            NUM_CHAINS * DESC_PER_CHAIN * DESC_WORD_SIZE * 4)
-#define INITIAL_STORAGE_OFFSET_WORDS (NUM_CHAINS * DESC_PER_CHAIN * DESC_WORD_SIZE)
+#define NUM_CHAINS               3
+#define DESC_PER_CHAIN           10
+#define LEN_PER_DESCRIPTOR       (1024 * 10)
+#define INITIAL_DESC_BASE_OFFSET 0x1C000000
+#define DESC_WORD_SIZE           8
+#define TIMEOUT                  10
+#define INITIAL_STORAGE_OFFSET                                                 \
+  (INITIAL_DESC_BASE_OFFSET + NUM_CHAINS * DESC_PER_CHAIN * DESC_WORD_SIZE * 4)
+#define INITIAL_STORAGE_OFFSET_WORDS                                           \
+  (NUM_CHAINS * DESC_PER_CHAIN * DESC_WORD_SIZE)
 
 class opssat_sidloc
 {
 private:
-    uio_device  __ddr_uio;
-    uio_device  __dma_uio;
-    dma_device  __dma_dev;
-    uio_device  __fifo_arbiter;
-    std::vector<std::vector<descriptor>> 
-                __desc_chains;
-    uint32_t*   __samples_ptr;
-    size_t      __current_desc;
-    //uint32_t*   __fifo_arbiter;
+  uio_device                           __ddr_uio;
+  uio_device                           __dma_uio;
+  dma_device                           __dma_dev;
+  uio_device                           __fifo_arbiter;
+  std::vector<std::vector<descriptor>> __desc_chains;
+  uint32_t                            *__samples_ptr;
+  size_t                               __current_desc;
+  // uint32_t*   __fifo_arbiter;
 
 public:
-    opssat_sidloc(const char *ddr_uio_name, 
-                            const char* dma_uio_name);
-    ~opssat_sidloc();
-    int activate_stream();
-    int read_stream(uint32_t* buffer, size_t len);
-    void reset_device();
+  opssat_sidloc(const char *ddr_uio_name, const char *dma_uio_name);
+  ~opssat_sidloc();
+  int
+  activate_stream();
+  int
+  read_stream(uint32_t *buffer, size_t len);
+  void
+  reset_device();
 };
